@@ -7,11 +7,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"reflect"
-	"time"
-
 	"k8s.io/client-go/1.4/kubernetes"
 	"k8s.io/client-go/1.4/tools/clientcmd"
+	"reflect"
+	"time"
 )
 
 var (
@@ -20,34 +19,32 @@ var (
 	resourceName   = flag.String("n", "mysuperpod", "resource name e.g. pod name, rc name ...")
 	namespace      = flag.String("ns", "namespace", "namespace of the resource")
 	resourceMapper = map[string]reflect.Type{
-		"pod": reflect.TypeOf(PodCheckStatus{}),
-		"rc":  reflect.TypeOf(ReplicationControllerCheckStatus{}),
+		"pod": reflect.TypeOf(Pod{}),
+		"rc":  reflect.TypeOf(ReplicationController{}),
 	}
 )
 
-// KubeResource is a generic type to define a Kubernetes Resources
 type KubeResource interface {
-	checkState()
-	new(clientSet kubernetes.Clientset, namespace string, name string)
+	checkState() (bool, error)
+	init(clientSet *kubernetes.Clientset, namespace string, name string)
 }
 
-// PodCheckStatus is our internal representation of pod
-type PodCheckStatus struct {
+type Pod struct {
 	clientSet *kubernetes.Clientset
 	namespace string
 	name      string
 }
 
-// ReplicationControllerCheckStatus is our internal representation of replictionController
-type ReplicationControllerCheckStatus struct{}
-
-func (p *PodCheckStatus) new(clientSet kubernetes.Clientset, namespace string, name string) {
-	p.clientSet = &clientSet
+func (p Pod) init(clientSet *kubernetes.Clientset, namespace string, name string) {
+	p.clientSet = clientSet
 	p.namespace = namespace
 	p.name = name
 }
 
-func (p *PodCheckStatus) checkState() (bool, error) {
+func (p Pod) checkState() (bool, error) {
+	a := p.clientSet.Core()
+	fmt.Printf("----> %+v\n", a)
+
 	pod, err := p.clientSet.Core().Pods(p.namespace).Get(p.name)
 	fmt.Println("Namespace :", p.namespace)
 	fmt.Println("Pod:", p.name)
@@ -60,7 +57,19 @@ func (p *PodCheckStatus) checkState() (bool, error) {
 	return state == "Prout", err
 }
 
-func waitResource(resource *KubeResource) (bool, error) {
+type ReplicationController struct {
+}
+
+func (c ReplicationController) init(clientSet *kubernetes.Clientset, namespace string, name string) {
+	// TODO: implement this
+}
+
+func (c ReplicationController) checkState() (bool, error) {
+	// TODO: implement this
+	return true, nil
+}
+
+func waitResource(resource KubeResource) (bool, error) {
 	timeout := time.After(15 * time.Second)
 	tick := time.Tick(2 * time.Second)
 	for {
@@ -81,7 +90,6 @@ func waitResource(resource *KubeResource) (bool, error) {
 
 func makeInstance(name string) interface{} {
 	v := reflect.New(resourceMapper[name]).Elem()
-	// Maybe fill in fields here if necessary
 	return v.Interface()
 }
 
@@ -91,6 +99,7 @@ func main() {
 	fmt.Println("Resource Kind is :", *resourceKind)
 	fmt.Println("Resource Name is : ", *resourceName)
 	fmt.Println("Namespace is : ", *namespace)
+
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err.Error())
@@ -99,10 +108,11 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	var kubeResource *KubeResource
+
+	var kubeResource KubeResource
 	if _, ok := resourceMapper[*resourceKind]; ok {
-		kubeResource := makeInstance(*resourceKind)
-		kubeResource.new(clientset, *namespace, *resourceName)
+		kubeResource = makeInstance(*resourceKind).(KubeResource)
+		kubeResource.init(clientset, *namespace, *resourceName)
 	} else {
 		panic(fmt.Sprintf("Dont known what to do with kind : %s", *resourceKind))
 	}
