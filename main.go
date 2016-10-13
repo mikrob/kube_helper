@@ -42,6 +42,15 @@ type PetSet struct {
 	name      string
 }
 
+func (ps PetSet) checkState(clientSet *kubernetes.Clientset) (bool, error) {
+	petset, err := clientSet.Apps().PetSets(ps.namespace).Get(ps.name)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Printf("%+v\n", petset)
+	return true, nil
+}
+
 func (p Pod) checkState(clientSet *kubernetes.Clientset) (bool, error) {
 	pod, err := clientSet.Core().Pods(p.namespace).Get(p.name)
 	fmt.Println("Namespace :", p.namespace)
@@ -68,15 +77,6 @@ func (rc ReplicationController) checkState(clientSet *kubernetes.Clientset) (boo
 	fmt.Println("Replicas :", replicas)
 	fmt.Println("Ready replicas:", readyReplicas)
 	return (replicas == readyReplicas) && (readyReplicas == fullyLabeledReplicas), err
-}
-
-func (ps PetSet) checkState(clientSet *kubernetes.Clientset) (bool, error) {
-	// ps, err := clientSet.Core().PetSets(ps.namespace).Get(ps.name)
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-	// fmt.Printf("%+v\n", ps)
-	return true, nil
 }
 
 func waitResource(resource KubeResource, clientSet *kubernetes.Clientset) (bool, error) {
