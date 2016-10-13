@@ -20,19 +20,26 @@ var (
 	namespace    = flag.String("ns", "namespace", "namespace of the resource")
 )
 
+// KubeResource is an abstract representation of kuberesource
 type KubeResource interface {
 	checkState(clientSet *kubernetes.Clientset) (bool, error)
-	init(namespace string, name string)
 }
 
+//Pod is our internal representation of Pod
 type Pod struct {
 	namespace string
 	name      string
 }
 
-func (p Pod) init(namespace string, name string) {
-	p.namespace = namespace
-	p.name = name
+//ReplicationController is our internal replication of ReplicationController
+type ReplicationController struct {
+	namespace string
+	name      string
+}
+
+type PetSet struct {
+	namespace string
+	name      string
 }
 
 func (p Pod) checkState(clientSet *kubernetes.Clientset) (bool, error) {
@@ -48,17 +55,27 @@ func (p Pod) checkState(clientSet *kubernetes.Clientset) (bool, error) {
 	return state == "Prout", err
 }
 
-type ReplicationController struct {
-	namespace string
-	name      string
+func (rc ReplicationController) checkState(clientSet *kubernetes.Clientset) (bool, error) {
+	repcontroller, err := clientSet.Core().ReplicationControllers(rc.namespace).Get(rc.name)
+	if err != nil {
+		panic(err.Error())
+	}
+	state := repcontroller.Status
+	//replicas := int32(4) //state.Replicas
+	replicas := state.Replicas
+	readyReplicas := state.ReadyReplicas
+	fullyLabeledReplicas := state.FullyLabeledReplicas
+	fmt.Println("Replicas :", replicas)
+	fmt.Println("Ready replicas:", readyReplicas)
+	return (replicas == readyReplicas) && (readyReplicas == fullyLabeledReplicas), err
 }
 
-func (c ReplicationController) init(clientSet *kubernetes.Clientset, namespace string, name string) {
-	// TODO: implement this
-}
-
-func (c ReplicationController) checkState() (bool, error) {
-	// TODO: implement this
+func (ps PetSet) checkState(clientSet *kubernetes.Clientset) (bool, error) {
+	// ps, err := clientSet.Core().PetSets(ps.namespace).Get(ps.name)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// fmt.Printf("%+v\n", ps)
 	return true, nil
 }
 
