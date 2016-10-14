@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"kube_helper/model"
 	"time"
 
 	"k8s.io/client-go/1.4/kubernetes"
@@ -20,66 +21,7 @@ var (
 	namespace    = flag.String("ns", "namespace", "namespace of the resource")
 )
 
-// KubeResource is an abstract representation of kuberesource
-type KubeResource interface {
-	checkState(clientSet *kubernetes.Clientset) (bool, error)
-}
-
-//Pod is our internal representation of Pod
-type Pod struct {
-	namespace string
-	name      string
-}
-
-//ReplicationController is our internal replication of ReplicationController
-type ReplicationController struct {
-	namespace string
-	name      string
-}
-
-type PetSet struct {
-	namespace string
-	name      string
-}
-
-func (ps PetSet) checkState(clientSet *kubernetes.Clientset) (bool, error) {
-	petset, err := clientSet.Apps().PetSets(ps.namespace).Get(ps.name)
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Printf("%+v\n", petset)
-	return true, nil
-}
-
-func (p Pod) checkState(clientSet *kubernetes.Clientset) (bool, error) {
-	pod, err := clientSet.Core().Pods(p.namespace).Get(p.name)
-	fmt.Println("Namespace :", p.namespace)
-	fmt.Println("Pod:", p.name)
-	if err != nil {
-		panic(err.Error())
-	}
-	state := pod.Status.Phase
-	//fmt.Printf("%+v\n", status)
-	fmt.Println("Status :", state)
-	return state == "Prout", err
-}
-
-func (rc ReplicationController) checkState(clientSet *kubernetes.Clientset) (bool, error) {
-	repcontroller, err := clientSet.Core().ReplicationControllers(rc.namespace).Get(rc.name)
-	if err != nil {
-		panic(err.Error())
-	}
-	state := repcontroller.Status
-	//replicas := int32(4) //state.Replicas
-	replicas := state.Replicas
-	readyReplicas := state.ReadyReplicas
-	fullyLabeledReplicas := state.FullyLabeledReplicas
-	fmt.Println("Replicas :", replicas)
-	fmt.Println("Ready replicas:", readyReplicas)
-	return (replicas == readyReplicas) && (readyReplicas == fullyLabeledReplicas), err
-}
-
-func waitResource(resource KubeResource, clientSet *kubernetes.Clientset) (bool, error) {
+func waitResource(resource model.KubeResource, clientSet *kubernetes.Clientset) (bool, error) {
 	timeout := time.After(15 * time.Second)
 	tick := time.Tick(2 * time.Second)
 	for {
@@ -88,7 +30,7 @@ func waitResource(resource KubeResource, clientSet *kubernetes.Clientset) (bool,
 			msg := fmt.Sprintf("Timeout after %d seconds", 15)
 			return false, errors.New(msg)
 		case <-tick:
-			ok, err := resource.checkState(clientSet)
+			ok, err := resource.CheckState(clientSet)
 			if err != nil {
 				return false, err
 			} else if ok {
@@ -101,9 +43,11 @@ func waitResource(resource KubeResource, clientSet *kubernetes.Clientset) (bool,
 func makeInstance(kind string, resourceName string, namespace string) interface{} {
 	switch kind {
 	case "pod":
-		return Pod{namespace: namespace, name: resourceName}
+		return model.Pod{Namespace: namespace, Name: resourceName}
 	case "rc":
-		return ReplicationController{namespace: namespace, name: resourceName}
+		return model.ReplicationController{Namespace: namespace, Name: resourceName}
+	case "petset":
+		return model.PetSet{Namespace: namespace, Name: resourceName}
 	default:
 		fmt.Println(fmt.Errorf("Don't know what to do with kind : %s", kind))
 		return nil
@@ -126,7 +70,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	kubeResource := makeInstance(*resourceKind, *resourceName, *namespace).(KubeResource)
+	kubeResource := makeInstance(*resourceKind, *resourceName, *namespace).(model.KubeResource)
 
 	_, podErr := waitResource(kubeResource, clientset)
 	if podErr != nil {
