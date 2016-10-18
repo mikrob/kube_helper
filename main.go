@@ -48,6 +48,8 @@ func makeInstance(kind string, resourceName string, namespace string) interface{
 		return model.ReplicationController{Namespace: namespace, Name: resourceName}
 	case "petset":
 		return model.PetSet{Namespace: namespace, Name: resourceName}
+	case "svc":
+		return model.Service{Namespace: namespace, Name: resourceName}
 	default:
 		fmt.Println(fmt.Errorf("Don't know what to do with kind : %s", kind))
 		return nil

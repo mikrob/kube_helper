@@ -19,6 +19,11 @@ type Pod struct {
 	Name      string
 }
 
+type Service struct {
+	Namespace string
+	Name      string
+}
+
 // ReplicationController is our internal replication of ReplicationController
 type ReplicationController struct {
 	Namespace string
@@ -38,6 +43,11 @@ func allPredicate(vs []bool, f func(bool) bool) bool {
 		}
 	}
 	return true
+}
+
+// CheckState for service
+func (svc Service) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+	return true, nil
 }
 
 // CheckState for PetSet
