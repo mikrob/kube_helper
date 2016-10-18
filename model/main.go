@@ -19,6 +19,7 @@ type Pod struct {
 	Name      string
 }
 
+// Service is our internal representation of Service
 type Service struct {
 	Namespace string
 	Name      string
@@ -32,6 +33,12 @@ type ReplicationController struct {
 
 // PetSet is our internal representation of PetSet
 type PetSet struct {
+	Namespace string
+	Name      string
+}
+
+// Job is our internal representation of Job
+type Job struct {
 	Namespace string
 	Name      string
 }
@@ -114,4 +121,15 @@ func (rc ReplicationController) CheckState(clientSet *kubernetes.Clientset) (boo
 	fmt.Println("Replicas :", replicas)
 	fmt.Println("Ready replicas:", readyReplicas)
 	return (replicas == readyReplicas) && (readyReplicas == fullyLabeledReplicas), err
+}
+
+// CheckState for Job
+func (j Job) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+	job, err := clientSet.Batch().Jobs(j.Namespace).Get(j.Name)
+	if err != nil {
+		panic(err.Error())
+	}
+	status := job.Status
+	return status.Succeeded > 0, nil
+
 }

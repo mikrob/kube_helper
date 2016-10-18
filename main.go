@@ -19,21 +19,26 @@ var (
 	resourceKind = flag.String("k", "rc", "resource kind name : pod, svc, rc, petset ...")
 	resourceName = flag.String("n", "mysuperpod", "resource name e.g. pod name, rc name ...")
 	namespace    = flag.String("ns", "namespace", "namespace of the resource")
+	maxwait      = flag.Int("t", 15, "wait for status in seconds")
 )
 
 func waitResource(resource model.KubeResource, clientSet *kubernetes.Clientset) (bool, error) {
-	timeout := time.After(15 * time.Second)
+	timeout := time.After(time.Duration(*maxwait) * time.Second)
 	tick := time.Tick(2 * time.Second)
+	fmt.Printf("Waiting for resource")
 	for {
 		select {
 		case <-timeout:
-			msg := fmt.Sprintf("Timeout after %d seconds", 15)
+			msg := fmt.Sprintf("Timeout after %d seconds", *maxwait)
 			return false, errors.New(msg)
 		case <-tick:
 			ok, err := resource.CheckState(clientSet)
+			fmt.Printf(".")
 			if err != nil {
+				fmt.Printf("\n")
 				return false, err
 			} else if ok {
+				fmt.Printf("\n")
 				return true, nil
 			}
 		}
@@ -50,6 +55,8 @@ func makeInstance(kind string, resourceName string, namespace string) interface{
 		return model.PetSet{Namespace: namespace, Name: resourceName}
 	case "svc":
 		return model.Service{Namespace: namespace, Name: resourceName}
+	case "job":
+		return model.Job{Namespace: namespace, Name: resourceName}
 	default:
 		fmt.Println(fmt.Errorf("Don't know what to do with kind : %s", kind))
 		return nil
