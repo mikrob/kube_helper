@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"k8s.io/client-go/1.4/kubernetes"
+	clientset "k8s.io/client-go/1.4/kubernetes"
 	"k8s.io/client-go/1.4/tools/clientcmd"
 )
 
@@ -22,7 +23,7 @@ var (
 	maxwait      = flag.Int("t", 15, "wait for status in seconds")
 )
 
-func waitResource(resource model.KubeResource, clientSet *kubernetes.Clientset) (bool, error) {
+func waitResource(resource model.KubeResource, clientSet clientset.Interface) (bool, error) {
 	timeout := time.After(time.Duration(*maxwait) * time.Second)
 	tick := time.Tick(2 * time.Second)
 	fmt.Printf("Waiting for resource")

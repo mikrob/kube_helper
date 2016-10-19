@@ -5,12 +5,13 @@ import (
 	"regexp"
 
 	"k8s.io/client-go/1.4/kubernetes"
+	clientset "k8s.io/client-go/1.4/kubernetes"
 	"k8s.io/client-go/1.4/pkg/api"
 )
 
 // KubeResource is an abstract representation of kuberesource
 type KubeResource interface {
-	CheckState(clientSet *kubernetes.Clientset) (bool, error)
+	CheckState(clientSet clientset.Interface) (bool, error)
 }
 
 // Pod is our internal representation of Pod
@@ -53,12 +54,12 @@ func allPredicate(vs []bool, f func(bool) bool) bool {
 }
 
 // CheckState for service
-func (svc Service) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+func (svc Service) CheckState(clientSet clientset.Interface) (bool, error) {
 	return true, nil
 }
 
 // CheckState for PetSet
-func (ps PetSet) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+func (ps PetSet) CheckState(clientSet clientset.Interface) (bool, error) {
 	petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
 
 	if err != nil {
@@ -94,7 +95,7 @@ func (ps PetSet) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
 }
 
 // CheckState for pod
-func (p Pod) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+func (p Pod) CheckState(clientSet clientset.Interface) (bool, error) {
 	pod, err := clientSet.Core().Pods(p.Namespace).Get(p.Name)
 	fmt.Println("Namespace :", p.Namespace)
 	fmt.Println("Pod:", p.Name)
@@ -108,7 +109,7 @@ func (p Pod) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
 }
 
 //CheckState for ReplicationController
-func (rc ReplicationController) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+func (rc ReplicationController) CheckState(clientSet clientset.Interface) (bool, error) {
 	repcontroller, err := clientSet.Core().ReplicationControllers(rc.Namespace).Get(rc.Name)
 	if err != nil {
 		panic(err.Error())
