@@ -1,7 +1,7 @@
 BINARY=kube_helper
 
 test:
-	go test ./...
+	go test  -v ./...
 
 all:
 	go build -o ${BINARY} main.go
