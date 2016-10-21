@@ -1,5 +1,7 @@
 BINARY=kube_helper
 
+PHONY: all
+
 test:
 	go test  -v ./...
 
