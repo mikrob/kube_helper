@@ -30,9 +30,22 @@ func TestCheckService(t *testing.T) {
 	kubeResource := Service{Name: "myservice", Namespace: "mynamespace"}
 	clientSet := fakeclientset.NewSimpleClientset()
 	result, resultErr := kubeResource.CheckState(clientSet)
-	t.Log("prout")
-	t.Logf("%+v\n", result)
+	if result != true {
+		t.Error("Result of check state should be true")
+	}
 	if resultErr != nil {
 		t.Error("Test failed")
 	}
+}
+
+func TestCheckPetSet(t *testing.T) {
+	// kubeResource := PetSet{Name: "myservice", Namespace: "mynamespace"}
+	// clientSet := fakeclientset.NewSimpleClientset()
+	// result, resultErr := kubeResource.CheckState(clientSet)
+	// if result != true {
+	// 	t.Error("Result of check state should be true")
+	// }
+	// if resultErr != nil {
+	// 	t.Error("Test failed")
+	// }
 }
