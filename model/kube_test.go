@@ -3,7 +3,7 @@ package model
 import (
 	"testing"
 
-	fakeclientset "k8s.io/client-go/1.4/kubernetes/fake"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 )
 
 func TestAllPredicateTrue(t *testing.T) {

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"regexp"
 
-	"k8s.io/client-go/1.4/kubernetes"
-	clientset "k8s.io/client-go/1.4/kubernetes"
-	"k8s.io/client-go/1.4/pkg/api"
+	"k8s.io/client-go/pkg/api/v1"
+
+	"k8s.io/client-go/kubernetes"
+	clientset "k8s.io/client-go/kubernetes"
 )
 
 // KubeResource is an abstract representation of kuberesource
@@ -60,7 +61,8 @@ func (svc Service) CheckState(clientSet clientset.Interface) (bool, error) {
 
 // CheckState for PetSet
 func (ps PetSet) CheckState(clientSet clientset.Interface) (bool, error) {
-	petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
+	// petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
+	petSet, err := clientSet.AppsV1beta1().StatefulSets(ps.Namespace).Get(ps.Name)
 
 	if err != nil {
 		panic(err.Error())
@@ -70,7 +72,7 @@ func (ps PetSet) CheckState(clientSet clientset.Interface) (bool, error) {
 	fmt.Println("Wanted replicas : ", *wantedReplicas)
 	fmt.Println("Actual Replicas :", psStatusReplicas)
 
-	petSetPods, errPods := clientSet.Core().Pods(ps.Namespace).List(api.ListOptions{})
+	petSetPods, errPods := clientSet.Core().Pods(ps.Namespace).List(v1.ListOptions{})
 	if errPods != nil {
 		panic(errPods.Error())
 	}

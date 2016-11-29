@@ -10,9 +10,9 @@ import (
 	"kube_helper/model"
 	"time"
 
-	"k8s.io/client-go/1.4/kubernetes"
-	clientset "k8s.io/client-go/1.4/kubernetes"
-	"k8s.io/client-go/1.4/tools/clientcmd"
+	"k8s.io/client-go/kubernetes"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
