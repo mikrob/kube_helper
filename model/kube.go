@@ -61,8 +61,8 @@ func (svc Service) CheckState(clientSet clientset.Interface) (bool, error) {
 
 // CheckState for PetSet
 func (ps PetSet) CheckState(clientSet clientset.Interface) (bool, error) {
-	// petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
-	petSet, err := clientSet.AppsV1beta1().StatefulSets(ps.Namespace).Get(ps.Name)
+	petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
+	//petSet, err := clientSet.AppsV1beta1().StatefulSets(ps.Namespace).Get(ps.Name)
 
 	if err != nil {
 		panic(err.Error())
