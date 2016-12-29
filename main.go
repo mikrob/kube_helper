@@ -52,12 +52,12 @@ func makeInstance(kind string, resourceName string, namespace string) interface{
 		return model.Pod{Namespace: namespace, Name: resourceName}
 	case "rc":
 		return model.ReplicationController{Namespace: namespace, Name: resourceName}
-	case "petset":
-		return model.PetSet{Namespace: namespace, Name: resourceName}
 	case "svc":
 		return model.Service{Namespace: namespace, Name: resourceName}
 	case "job":
 		return model.Job{Namespace: namespace, Name: resourceName}
+	case "statefulset":
+		return model.StatefulSet{Namespace: namespace, Name: resourceName}
 	default:
 		fmt.Println(fmt.Errorf("Don't know what to do with kind : %s", kind))
 		return nil

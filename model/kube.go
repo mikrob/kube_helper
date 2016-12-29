@@ -33,8 +33,8 @@ type ReplicationController struct {
 	Name      string
 }
 
-// PetSet is our internal representation of PetSet
-type PetSet struct {
+// StatefulSet is our internal representation of PetSet
+type StatefulSet struct {
 	Namespace string
 	Name      string
 }
@@ -60,19 +60,18 @@ func (svc Service) CheckState(clientSet clientset.Interface) (bool, error) {
 }
 
 // CheckState for PetSet
-func (ps PetSet) CheckState(clientSet clientset.Interface) (bool, error) {
-	petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
-	//petSet, err := clientSet.AppsV1beta1().StatefulSets(ps.Namespace).Get(ps.Name)
-
+func (ss StatefulSet) CheckState(clientSet clientset.Interface) (bool, error) {
+	//petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
+	statefulSet, err := clientSet.AppsV1beta1().StatefulSets(ss.Namespace).Get(ss.Name)
 	if err != nil {
 		panic(err.Error())
 	}
-	wantedReplicas := petSet.Spec.Replicas
-	psStatusReplicas := petSet.Status.Replicas
+	wantedReplicas := statefulSet.Spec.Replicas
+	psStatusReplicas := statefulSet.Status.Replicas
 	fmt.Println("Wanted replicas : ", *wantedReplicas)
 	fmt.Println("Actual Replicas :", psStatusReplicas)
 
-	petSetPods, errPods := clientSet.Core().Pods(ps.Namespace).List(v1.ListOptions{})
+	petSetPods, errPods := clientSet.Core().Pods(ss.Namespace).List(v1.ListOptions{})
 	if errPods != nil {
 		panic(errPods.Error())
 	}
@@ -81,7 +80,7 @@ func (ps PetSet) CheckState(clientSet clientset.Interface) (bool, error) {
 	var podReadys []bool
 	for _, pod := range petSetPods.Items {
 		pName := string(pod.Name)
-		match, _ := regexp.MatchString(ps.Name, pName)
+		match, _ := regexp.MatchString(ss.Name, pName)
 		if match {
 			fmt.Println(fmt.Sprintf("Pod : %s, Status : %s", pName, pod.Status.Phase))
 			podReadys = append(podReadys, pod.Status.Phase == "Running")
