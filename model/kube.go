@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"k8s.io/client-go/pkg/api/v1"
+	meta_v1 "k8s.io/client-go/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/kubernetes"
 	clientset "k8s.io/client-go/kubernetes"
@@ -62,7 +63,7 @@ func (svc Service) CheckState(clientSet clientset.Interface) (bool, error) {
 // CheckState for PetSet
 func (ss StatefulSet) CheckState(clientSet clientset.Interface) (bool, error) {
 	//petSet, err := clientSet.Apps().PetSets(ps.Namespace).Get(ps.Name)
-	statefulSet, err := clientSet.AppsV1beta1().StatefulSets(ss.Namespace).Get(ss.Name)
+	statefulSet, err := clientSet.AppsV1beta1().StatefulSets(ss.Namespace).Get(ss.Name, meta_v1.GetOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -97,7 +98,7 @@ func (ss StatefulSet) CheckState(clientSet clientset.Interface) (bool, error) {
 
 // CheckState for pod
 func (p Pod) CheckState(clientSet clientset.Interface) (bool, error) {
-	pod, err := clientSet.Core().Pods(p.Namespace).Get(p.Name)
+	pod, err := clientSet.Core().Pods(p.Namespace).Get(p.Name, meta_v1.GetOptions{})
 	fmt.Println("Namespace :", p.Namespace)
 	fmt.Println("Pod:", p.Name)
 	if err != nil {
@@ -111,7 +112,7 @@ func (p Pod) CheckState(clientSet clientset.Interface) (bool, error) {
 
 //CheckState for ReplicationController
 func (rc ReplicationController) CheckState(clientSet clientset.Interface) (bool, error) {
-	repcontroller, err := clientSet.Core().ReplicationControllers(rc.Namespace).Get(rc.Name)
+	repcontroller, err := clientSet.Core().ReplicationControllers(rc.Namespace).Get(rc.Name, meta_v1.GetOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -127,7 +128,7 @@ func (rc ReplicationController) CheckState(clientSet clientset.Interface) (bool,
 
 // CheckState for Job
 func (j Job) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
-	job, err := clientSet.Batch().Jobs(j.Namespace).Get(j.Name)
+	job, err := clientSet.Batch().Jobs(j.Namespace).Get(j.Name, meta_v1.GetOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
