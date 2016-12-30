@@ -7,7 +7,6 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	meta_v1 "k8s.io/client-go/pkg/apis/meta/v1"
 
-	"k8s.io/client-go/kubernetes"
 	clientset "k8s.io/client-go/kubernetes"
 )
 
@@ -127,7 +126,7 @@ func (rc ReplicationController) CheckState(clientSet clientset.Interface) (bool,
 }
 
 // CheckState for Job
-func (j Job) CheckState(clientSet *kubernetes.Clientset) (bool, error) {
+func (j Job) CheckState(clientSet clientset.Interface) (bool, error) {
 	job, err := clientSet.Batch().Jobs(j.Namespace).Get(j.Name, meta_v1.GetOptions{})
 	if err != nil {
 		panic(err.Error())
